@@ -497,4 +497,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // .fade-in.visible {
     //     opacity: 1;
     // }
+
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    if (mobileMenuButton && mobileMenu) {
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    }
 });
