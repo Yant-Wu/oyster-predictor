@@ -1,0 +1,4 @@
+oysenv/
+__pycache__/
+instance/oyster_predictor.db
+*.pyc

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>牡蠣肉重預測系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36D399',
+                        accent: '#7B61FF',
+                        neutral: {
+                            100: '#F5F7FA',
+                            200: '#E4E7ED',
+                            300: '#C0C4CC',
+                            400: '#909399',
+                            500: '#606266',
+                            600: '#303133',
+                            700: '#1E1E1E',
+                        }
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'sm': '0 1px 2px rgba(0, 0, 0, 0.05)',
+                        'md': '0 4px 6px rgba(0, 0, 0, 0.1)',
+                        'lg': '0 10px 15px rgba(0, 0, 0, 0.1)',
+                    }
+                },
+            }
+        }
+    </script>
+</head>
+<body class="font-inter bg-neutral-100 text-neutral-600 min-h-screen flex flex-col">
+    {% include 'header.html' %}
+
+    <div class="container mx-auto my-8 bg-white rounded-xl shadow-lg overflow-hidden flex-grow">
+        <!-- 头部区域 -->
+        <header class="bg-gradient-to-r from-primary to-accent text-white p-8 relative overflow-hidden">
+            <div class="absolute inset-0 opacity-10">
+                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                    <pattern id="pattern-circles" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse" patternContentUnits="userSpaceOnUse">
+                        <circle id="pattern-circles-circle" cx="20" cy="20" r="1.5" fill="#ffffff" />
+                    </pattern>
+                    <rect id="pattern-circles-background" x="0" y="0" width="100%" height="100%" fill="url(#pattern-circles)" />
+                </svg>
+            </div>
+            <div class="relative z-10">
+                <h1 class="text-[clamp(1.8rem,5vw,2.5rem)] font-semibold">
+                    <span class="tech-text text-secondary">智慧農業</span> - 牡蠣肉重預測
+                </h1>
+                <p class="mt-2 text-white/80 max-w-2xl mx-auto">運用先進的深度學習模型，準確預測牡蠣肉重，提升養殖效率與品質管控</p>
+            </div>
+        </header>
+
+        <!-- 主内容区域 -->
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8 p-8">
+            <!-- 输入区域 -->
+            <section class="lg:col-span-2 input-section bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-primary border-b-2 border-secondary pb-2">輸入牡蠣資訊</h2>
+                    <span class="bg-secondary/10 text-secondary text-sm font-medium px-3 py-1 rounded-full">
+                        <i class="fa fa-database mr-1"></i> 已連接後台服務
+                    </span>
+                </div>
+                
+                <form id="oysterForm" method="POST" action="{{ url_for('oyster_predictor') }}"> {# Action always for new prediction #}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="form-group">
+                            <label for="shell_length" class="block text-neutral-500 font-medium mb-2">左殼長 (cm):</label>
+                            <div class="relative">
+                                <input type="number" id="shell_length" name="shell_length" value="" step="0.01" required
+                                    class="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none">
+                                <div class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400">
+                                    <i class="fa fa-ruler"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="shell_width" class="block text-neutral-500 font-medium mb-2">殼寬 (cm):</label>
+                            <div class="relative">
+                                <input type="number" id="shell_width" name="shell_width" value="" step="0.01" required
+                                    class="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none">
+                                <div class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400">
+                                    <i class="fa fa-ruler-combined"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="shell_height" class="block text-neutral-500 font-medium mb-2">殼高 (cm):</label>
+                            <div class="relative">
+                                <input type="number" id="shell_height" name="shell_height" value="" step="0.01" required
+                                    class="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none">
+                                <div class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400">
+                                    <i class="fa fa-arrow-up"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="total_weight" class="block text-neutral-500 font-medium mb-2">總重量 (g):</label>
+                            <div class="relative">
+                                <input type="number" id="total_weight" name="total_weight" value="" step="0.01" required
+                                    class="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none">
+                                <div class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400">
+                                    <i class="fa fa-balance-scale"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="model_to_use" class="block text-neutral-500 font-medium mb-2">預測模型:</label>
+                            <div class="relative">
+                                <select id="model_to_use" name="model_to_use" required
+                                        class="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none appearance-none bg-white">
+                                    <option value="" disabled selected>選擇模型</option>
+                                    <option value="CNN">CNN模型</option>
+                                    <option value="SimulatedModel_v1">SimulatedModel_v1</option>
+                                </select>
+                                <div class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none">
+                                    <i class="fa fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mt-5">
+                        <label for="oysterImage" class="block text-neutral-500 font-medium mb-2">牡蠣圖像 (可選):</label>
+                        <div class="relative">
+                            <input type="file" id="oysterImage" name="oysterImage" accept="image/*"
+                                class="w-full px-4 py-2 rounded-lg border border-neutral-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none">
+                            <div class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400">
+                                <i class="fa fa-camera"></i>
+                            </div>
+                        </div>
+                        <div id="imagePreviewContainer" class="mt-4 hidden">
+                            <div class="relative">
+                                <img id="imagePreview" src="#" alt="圖像預覽" class="max-w-full h-auto rounded-lg shadow-sm">
+                                <button type="button" id="removeImageBtn" class="absolute top-2 right-2 bg-white/80 hover:bg-white text-neutral-700 rounded-full w-8 h-8 flex items-center justify-center transition-colors duration-200">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="image-hint text-sm text-neutral-400 mt-2">提示：為獲得最佳CNN模型預測效果，請提供由上往下拍攝的牡蠣圖像。</p>
+                    </div>
+
+                    <div class="mt-6 flex flex-col md:flex-row md:items-center">
+                        <button type="submit" id="predictButton" 
+                                class="w-full md:w-auto bg-gradient-to-r from-primary to-accent text-white py-3 px-4 rounded-lg font-medium shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex items-center justify-center">
+                            <i class="fa fa-calculator mr-2"></i> 開始分析
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- 结果区域 -->
+            <section class="result-section bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-primary border-b-2 border-secondary pb-2">分析結果</h2>
+                    <div class="flex space-x-2">
+                        <button id="saveResultBtn" class="text-neutral-600 hover:text-primary transition-colors duration-200 focus:outline-none" title="保存結果">
+                            <i class="fa fa-save"></i>
+                        </button>
+                        <button id="printResultBtn" class="text-neutral-600 hover:text-primary transition-colors duration-200 focus:outline-none" title="列印結果">
+                            <i class="fa fa-print"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="resultOutput" class="min-h-[400px] p-4 bg-neutral-100 rounded-lg">
+                    <div class="flex flex-col items-center justify-center h-full">
+                        <div class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                            <i class="fa fa-info-circle text-3xl text-primary"></i>
+                        </div>
+                        <p class="text-center text-neutral-400">請輸入牡蠣數據並點擊「開始分析」按鈕。</p>
+                        <p class="text-center text-neutral-300 mt-2 text-sm">系統將使用深度學習模型預測牡蠣肉重</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 历史记录区域 -->
+        <section class="p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-primary">歷史記錄</h2>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <input type="text" placeholder="搜索記錄..." class="pl-9 pr-4 py-2 rounded-lg border border-neutral-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none">
+                        <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"></i>
+                    </div>
+                    <div class="relative">
+                        <select class="pl-4 pr-9 py-2 rounded-lg border border-neutral-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none appearance-none">
+                            <option>全部模型</option>
+                            <option>LR模型</option>
+                            <option>CNN模型</option>
+                        </select>
+                        <i class="fa fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[600px]">
+                    <thead>
+                        <tr class="bg-neutral-100">
+                            <th class="px-4 py-3 text-left text-sm font-medium text-neutral-500 uppercase tracking-wider rounded-tl-lg">ID</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-neutral-500 uppercase tracking-wider">日期</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-neutral-500 uppercase tracking-wider">預測重量</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-neutral-500 uppercase tracking-wider">使用模型</th>
+                            <th class="px-4 py-3 text-left text-sm font-medium text-neutral-500 uppercase tracking-wider rounded-tr-lg">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-neutral-200">
+                        {% if predictions %}
+                            {% for prediction in predictions %}
+                            <tr class="hover:bg-neutral-50 transition-colors duration-150">
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-600">#OC-{{ prediction.timestamp.strftime('%Y%m%d') }}-{{ "%03d" | format(prediction.id) }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-600">{{ prediction.timestamp.strftime('%Y/%m/%d %H:%M') }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-primary">{{ "%.2f" | format(prediction.predicted_meat_weight) }} g</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-600">{{ prediction.model_used }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-neutral-500">
+                                    <button type="button" class="edit-prediction-btn text-primary hover:text-primary/80 transition-colors duration-150 mr-3"
+                                        data-id="{{ prediction.id }}"
+                                        data-shell_length="{{ prediction.shell_length }}"
+                                        data-shell_width="{{ prediction.shell_width }}"
+                                        data-shell_height="{{ prediction.shell_height }}"
+                                        data-total_weight="{{ prediction.total_weight }}"
+                                        data-model_used="{{ prediction.model_used }}">
+                                        <i class="fa fa-edit"></i> 編輯
+                                    </button>
+                                    <form action="{{ url_for('delete_prediction', prediction_id=prediction.id) }}" method="POST" class="inline-block" onsubmit="return confirm('您確定要刪除這條記錄嗎？');">
+                                        <button type="submit" class="text-red-500 hover:text-red-700 transition-colors duration-150">
+                                            <i class="fa fa-trash"></i> 刪除
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="px-4 py-3 text-center text-sm text-neutral-500">目前沒有歷史記錄。</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-6 flex justify-between items-center">
+                <div class="text-sm text-neutral-500">顯示 1 至 3 項，共 24 項</div>
+                <div class="flex space-x-1">
+                    <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-neutral-200 text-neutral-400 hover:border-primary hover:text-primary transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i class="fa fa-chevron-left text-xs"></i>
+                    </button>
+                    <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white">1</button>
+                    <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 hover:border-primary hover:text-primary transition-colors duration-150">2</button>
+                    <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 hover:border-primary hover:text-primary transition-colors duration-150">3</button>
+                    <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 hover:border-primary hover:text-primary transition-colors duration-150">
+                        <i class="fa fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 页脚区域 -->
+    </div>
+
+    {% include 'footer.html' %}
+
+    <!-- 模态框 - 保存结果 -->
+    <div id="saveResultModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-neutral-700">保存預測結果</h3>
+                    <button id="closeModalBtn" class="text-neutral-400 hover:text-neutral-600 transition-colors duration-150">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="resultName" class="block text-sm font-medium text-neutral-700 mb-1">結果名稱</label>
+                        <input type="text" id="resultName" name="resultName" value="牡蠣分析結果-20250529" 
+                            class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-150">
+                    </div>
+                    
+                    <div>
+                        <label for="resultNotes" class="block text-sm font-medium text-neutral-700 mb-1">備註 (可選)</label>
+                        <textarea id="resultNotes" name="resultNotes" rows="3" placeholder="輸入備註信息..." 
+                            class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-150"></textarea>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <input id="saveAsFavorite" type="checkbox" class="h-4 w-4 text-primary focus:ring-primary border-neutral-300 rounded">
+                        <label for="saveAsFavorite" class="ml-2 block text-sm text-neutral-700">標記為常用分析</label>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button id="cancelSaveBtn" class="px-4 py-2 border border-neutral-300 rounded-lg text-neutral-700 hover:bg-neutral-50 transition-colors duration-150">取消</button>
+                    <button id="confirmSaveBtn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors duration-150">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal - Edit Prediction -->
+    <div id="editPredictionModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg transform transition-all duration-300 scale-95 opacity-0" id="editModalContent">
+            <form id="editOysterForm" method="POST"> <!-- Action will be set by JS -->
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-neutral-700">編輯預測紀錄</h3>
+                        <button type="button" id="closeEditModalBtn" class="text-neutral-400 hover:text-neutral-600 transition-colors duration-150">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label for="edit_shell_length" class="block text-sm font-medium text-neutral-700 mb-1">左殼長 (cm):</label>
+                            <input type="number" id="edit_shell_length" name="shell_length" step="0.01" required class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-150">
+                        </div>
+                        <div>
+                            <label for="edit_shell_width" class="block text-sm font-medium text-neutral-700 mb-1">殼寬 (cm):</label>
+                            <input type="number" id="edit_shell_width" name="shell_width" step="0.01" required class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-150">
+                        </div>
+                        <div>
+                            <label for="edit_shell_height" class="block text-sm font-medium text-neutral-700 mb-1">殼高 (cm):</label>
+                            <input type="number" id="edit_shell_height" name="shell_height" step="0.01" required class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-150">
+                        </div>
+                        <div>
+                            <label for="edit_total_weight" class="block text-sm font-medium text-neutral-700 mb-1">總重量 (g):</label>
+                            <input type="number" id="edit_total_weight" name="total_weight" step="0.01" required class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-150">
+                        </div>
+                        <div>
+                            <label for="edit_model_to_use" class="block text-sm font-medium text-neutral-700 mb-1">預測模型:</label>
+                            <select id="edit_model_to_use" name="model_to_use" required class="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors duration-150 appearance-none bg-white">
+                                <option value="" disabled>選擇模型</option>
+                                <option value="CNN">CNN模型</option>
+                                <option value="SimulatedModel_v1">SimulatedModel_v1</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button type="button" id="cancelEditBtn" class="px-4 py-2 border border-neutral-300 rounded-lg text-neutral-700 hover:bg-neutral-50 transition-colors duration-150">取消</button>
+                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors duration-150">儲存變更</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const editPredictionModal = document.getElementById('editPredictionModal');
+            const editModalContent = document.getElementById('editModalContent');
+            const closeEditModalBtn = document.getElementById('closeEditModalBtn');
+            const cancelEditBtn = document.getElementById('cancelEditBtn');
+            const editOysterForm = document.getElementById('editOysterForm');
+
+            document.querySelectorAll('.edit-prediction-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const id = this.dataset.id;
+                    const shell_length = this.dataset.shell_length;
+                    const shell_width = this.dataset.shell_width;
+                    const shell_height = this.dataset.shell_height;
+                    const total_weight = this.dataset.total_weight;
+                    const model_used = this.dataset.model_used;
+
+                    document.getElementById('edit_shell_length').value = shell_length;
+                    document.getElementById('edit_shell_width').value = shell_width;
+                    document.getElementById('edit_shell_height').value = shell_height;
+                    document.getElementById('edit_total_weight').value = total_weight;
+                    
+                    const modelSelect = document.getElementById('edit_model_to_use');
+                    let modelFound = false;
+                    for (let i = 0; i < modelSelect.options.length; i++) {
+                        if (modelSelect.options[i].value === model_used) {
+                            modelSelect.value = model_used;
+                            modelFound = true;
+                            break;
+                        }
+                    }
+                    if (!modelFound) {
+                         modelSelect.value = ""; // Reset to "選擇模型" if previously used model not in options
+                    }
+
+                    // Construct the URL for the form action
+                    // We need to be careful with Jinja templating inside JavaScript
+                    let baseUrl = "{{ url_for('oyster_predictor') }}";
+                    if (!baseUrl.endsWith('/')) {
+                        baseUrl += '/';
+                    }
+                    editOysterForm.action = baseUrl + id;
+
+                    editPredictionModal.classList.remove('hidden');
+                    setTimeout(() => {
+                        if(editModalContent) { // Ensure element exists
+                            editModalContent.classList.remove('scale-95', 'opacity-0');
+                            editModalContent.classList.add('scale-100', 'opacity-100');
+                        }
+                    }, 10); 
+                });
+            });
+
+            function hideEditModal() {
+                if(editModalContent) { // Ensure element exists
+                    editModalContent.classList.add('scale-95', 'opacity-0');
+                    editModalContent.classList.remove('scale-100', 'opacity-100');
+                }
+                setTimeout(() => {
+                    editPredictionModal.classList.add('hidden');
+                }, 300);
+            }
+
+            if (closeEditModalBtn) closeEditModalBtn.addEventListener('click', hideEditModal);
+            if (cancelEditBtn) cancelEditBtn.addEventListener('click', hideEditModal);
+            
+            if (editPredictionModal) { // Ensure element exists
+                editPredictionModal.addEventListener('click', function(event) {
+                    if (event.target === editPredictionModal) {
+                        hideEditModal();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

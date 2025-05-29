@@ -1,0 +1,43 @@
+<nav class="bg-white shadow-md sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <i class="fa fa-leaf text-primary text-2xl"></i>
+            <span class="text-xl font-semibold text-primary">智慧農業平台</span>
+        </div>
+
+        <!-- Desktop Navigation Links & User Info -->
+        <div class="hidden md:flex items-center space-x-6">
+            <a href="{{ url_for('home') }}" class="{{ 'text-primary font-medium border-b-2 border-primary pb-1' if active_page == 'home' else 'text-neutral-600 hover:text-primary transition-colors duration-200' }}">首頁</a>
+            <a href="{{ url_for('oyster_predictor') }}" class="{{ 'text-primary font-medium border-b-2 border-primary pb-1' if active_page == 'oyster_predictor' else 'text-neutral-600 hover:text-primary transition-colors duration-200' }}">牡蠣預測</a>
+            <a href="#" class="text-neutral-600 hover:text-primary transition-colors duration-200">系統設定</a>
+            
+            {% if session.username %}
+                <span class="text-neutral-600">歡迎, {{ session.username }}</span>
+                <a href="{{ url_for('logout') }}" class="text-neutral-600 hover:text-primary transition-colors duration-200">登出</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="text-neutral-600 hover:text-primary transition-colors duration-200">登入</a>
+            {% endif %}
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <div class="md:hidden flex items-center">
+            <button class="focus:outline-none" id="mobile-menu-button">
+                <i class="fa fa-bars text-xl"></i>
+            </button>
+        </div>
+    </div>
+    <!-- 移动端菜单 -->
+    <div class="md:hidden hidden bg-white shadow-lg absolute w-full" id="mobile-menu">
+        <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+            <a href="{{ url_for('home') }}" class="{{ 'text-primary font-medium py-2' if active_page == 'home' else 'text-neutral-600 hover:text-primary transition-colors duration-200 py-2' }}">首頁</a>
+            <a href="{{ url_for('oyster_predictor') }}" class="{{ 'text-primary font-medium py-2' if active_page == 'oyster_predictor' else 'text-neutral-600 hover:text-primary transition-colors duration-200 py-2' }}">牡蠣預測</a>
+            <a href="#" class="text-neutral-600 hover:text-primary transition-colors duration-200 py-2">系統設定</a>
+            {% if session.username %}
+            <span class="text-neutral-600 py-2">歡迎, {{ session.username }}</span>
+            <a href="{{ url_for('logout') }}" class="text-neutral-600 hover:text-primary transition-colors duration-200 py-2">登出</a>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="text-neutral-600 hover:text-primary transition-colors duration-200 py-2">登入</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
